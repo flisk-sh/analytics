@@ -14,13 +14,13 @@ const LOGO = '<a class="logo" href="/"><span class="mk">&gt;_</span><span>flisk<
 
 function shell(login, active, inner) {
   const nav = [['Sites', '/'], ['API keys', '/tokens']].map(([n, h]) => `<a href="${h}" class="${n === active ? 'on' : ''}">${n}</a>`).join('');
-  return `<div class="frame"><header class="top">${LOGO}<nav>${nav}</nav><form class="me" method="post" action="/logout" style="margin:0"><span class="m">${esc(login)}</span><button class="av" title="Sign out" style="border:0;cursor:pointer">${esc(login[0].toUpperCase())}</button></form></header>${inner}</div>`;
+  return `<div class="frame"><header class="top">${LOGO}<nav>${nav}</nav><form class="me" method="post" action="/logout" style="margin:0"><span class="m">${esc(login)}</span><button class="av" title="Sign out" style="border:0;cursor:pointer">${esc(login[0].toUpperCase())}</button></form></header><main>${inner}</main></div>`;
 }
 
 export function loginPage(error = '') {
   const side = '<aside class="lside"><div class="big">0</div><div class="m">Cookies set on your visitors</div><div><div class="li"><b>01</b><span>No cookies, no consent banner</span></div><div class="li"><b>02</b><span>One script tag, under 1 KB</span></div><div class="li"><b>03</b><span>Same GitHub login as chat, fleet, inference</span></div></div></aside>';
   const note = error ? `<p style="color:var(--dn)">${esc(error)}</p>` : '<p>One login for chat, fleet, inference and analytics. We only read your GitHub name.</p>';
-  return layout('Sign in · Flisk Analytics', `<div class="frame"><div class="login"><div class="lc">${LOGO}<h1>Know who comes to your site.</h1>${note}<a class="gbtn" href="/auth/login">${GH}Continue with GitHub</a><small>Visitors are counted without cookies.</small></div>${side}</div></div>`);
+  return layout('Sign in · Flisk Analytics', `<div class="frame"><main class="login"><div class="lc">${LOGO}<h1>Know who comes to your site.</h1>${note}<a class="gbtn" href="/auth/login">${GH}Continue with GitHub</a><small>Visitors are counted without cookies.</small></div>${side}</main></div>`);
 }
 
 export function messagePage(title, text, login = '') {
