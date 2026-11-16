@@ -160,6 +160,7 @@ test('the tracking beacon still takes POST', async () => {
   const env = fakeEnv();
   const res = await handle(beacon({ p: '/', e: 'pageview', d: 'flisk.sh', n: 'r' }), env);
   expect(res.status).not.toBe(405);
+});
 
 test('GET / has exactly one main landmark, signed out and signed in', async () => {
   const env = fakeEnv();
