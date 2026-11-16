@@ -22,12 +22,21 @@ const redirect = (location, cookie) => { const h = new Headers({ location }); if
 
 const STATE = 'fa_state';
 const PAGES = /^\/(new|tokens|sites|site\/[^/]+(\/install)?)?$/;
+// Pages that only ever read. `/sites` and `/tokens` also take a POST.
+const READ_ONLY_PAGES = /^\/(new|site\/[^/]+(\/install)?)?$/;
 const cookieOf = (request, name) => new RegExp(`(?:^|;\\s*)${name}=([^;]+)`).exec(request.headers.get('cookie') || '')?.[1] || '';
 
 export async function handle(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
   const method = request.method;
+
+  // A page route only reads. Answer write verbs with 405 instead of rendering
+  // the page with a 200, so a script posting to the wrong address cannot look
+  // like it worked.
+  if (method !== 'GET' && method !== 'HEAD' && READ_ONLY_PAGES.test(path)) {
+    return new Response(null, { status: 405, headers: { allow: 'GET, HEAD', ...SECURITY } });
+  }
 
   // The beacon first: it is the hot path and needs no session.
   if (path === '/e') {
@@ -70,7 +79,7 @@ export async function handle(request, env) {
   }
   const login = bearer || session.login;
 
-  if (path === '/' && method === 'GET') return html(sitesPage(login));
+  if (path === '/' && (method === 'GET' || method === 'HEAD')) return html(sitesPage(login));
   if (path === '/new' && method === 'GET') return html(newSitePage(login));
   if (path === '/sites' && method === 'POST') {
     if (!sameOrigin(request, env.PUBLIC_ORIGIN)) return html(messagePage('Not allowed', 'Add sites from the cabinet.', login), 403);

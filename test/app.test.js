@@ -3,7 +3,7 @@ import { cleanDomain, handle } from '../src/index.js';
 import { resetSitesCache } from '../src/ingest.js';
 import { makeSession } from '../src/session.js';
 import { allowed, githubLogin } from '../src/auth.js';
-import { fakeEnv } from './helpers.js';
+import { beacon, fakeEnv } from './helpers.js';
 
 beforeEach(() => resetSitesCache());
 const cookieOf = (setCookie) => setCookie.split(';')[0];
@@ -128,3 +128,37 @@ test('dashboard chart uses whole-number axis ticks, and the sites page explains 
   const keys = await (await as(env, 'odykyi', '/tokens')).text();
   expect(keys).toContain('margin:24px;">Server:');
 });
+
+test('write verbs on a page route get a 405 with Allow, not the page', async () => {
+  const env = fakeEnv();
+  for (const method of ['POST', 'PUT', 'DELETE', 'PATCH']) {
+    const res = await handle(new Request('https://analytics.flisk.si/', { method }), env);
+    expect(res.status, method).toBe(405);
+    expect(res.headers.get('allow'), method).toBe('GET, HEAD');
+    expect(await res.text(), method).toBe('');
+  }
+});
+
+test('a signed-in POST to the cabinet still gets the 405', async () => {
+  const env = fakeEnv();
+  for (const path of ['/', '/new', '/site/flisk.sh']) {
+    const res = await as(env, 'odykyi', path, { method: 'POST' });
+    expect(res.status, path).toBe(405);
+    expect(res.headers.get('allow'), path).toBe('GET, HEAD');
+  }
+});
+
+test('GET and HEAD on the home page still render it', async () => {
+  const env = fakeEnv();
+  const get = await handle(new Request('https://analytics.flisk.si/'), env);
+  expect(get.status).toBe(200);
+  const head = await handle(new Request('https://analytics.flisk.si/', { method: 'HEAD' }), env);
+  expect(head.status).toBe(200);
+});
+
+test('the tracking beacon still takes POST', async () => {
+  const env = fakeEnv();
+  const res = await handle(beacon({ p: '/', e: 'pageview', d: 'flisk.sh', n: 'r' }), env);
+  expect(res.status).not.toBe(405);
+});
+
