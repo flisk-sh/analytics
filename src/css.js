@@ -2,6 +2,7 @@
 export const CSS = `
 *{box-sizing:border-box}html,body{margin:0}body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh}
 a{color:inherit;text-decoration:none}button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}.i{flex-shrink:0}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:10px 14px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:var(--rbar);font:600 13px var(--sans)}.skip-link:focus{left:12px;top:12px;outline:2px solid var(--acc);outline-offset:2px}
 .fav{display:inline-grid;place-items:center;width:20px;height:20px;font:600 11px var(--sans);font-style:normal;background:var(--favbg);color:var(--favfg);border-radius:var(--favr)}
 .ch{display:block;width:100%;height:auto;overflow:visible}.grid{stroke:var(--line);stroke-width:1}.ax{fill:var(--dim);font:11px var(--mono)}
 .ln{fill:none;stroke:var(--acc);stroke-width:2;stroke-linejoin:round}.pv{fill:none;stroke:var(--dim);stroke-dasharray:3 4;opacity:.55}.dot{fill:var(--acc);stroke:var(--panel);stroke-width:2}
