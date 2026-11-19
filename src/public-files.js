@@ -5,6 +5,7 @@ const TYPES = {
   '/sitemap.xml': 'application/xml; charset=utf-8',
   '/llms.txt': 'text/plain; charset=utf-8',
   '/robots.txt': 'text/plain; charset=utf-8',
+  '/.well-known/security.txt': 'text/plain; charset=utf-8',
 };
 
 export function publicFile(path, method, origin) {
@@ -28,6 +29,11 @@ Cookieless web analytics for the Flisk sites, using a Cloudflare Worker and Anal
     '/robots.txt': `User-agent: *
 Disallow: /
 Sitemap: ${home}sitemap.xml
+`,
+    '/.well-known/security.txt': `Contact: mailto:security@flisk.si
+Expires: 2027-01-01T00:00:00.000Z
+Preferred-Languages: en
+Canonical: ${home}.well-known/security.txt
 `,
   };
   return new Response(method === 'HEAD' ? null : bodies[path], {
