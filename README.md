@@ -34,3 +34,7 @@ claude mcp add --transport http flisk-analytics https://analytics.flisk.si/mcp -
 ```
 
 Tools: `list_sites`, `add_site`, `install_snippet`, `site_stats`. The same key works as `Authorization: Bearer` on `/api/sites` and `/api/stats`. Only a SHA-256 of a key is stored. A ready skill is in `skills/flisk-analytics/`.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
