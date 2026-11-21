@@ -20,6 +20,15 @@ test('signed out visitors see the GitHub login, and the API says 401', async () 
   expect((await handle(new Request('https://analytics.flisk.si/api/sites'), env)).status).toBe(401);
 });
 
+test('the home page has exactly one meta description of a useful length', async () => {
+  const html = await (await handle(new Request('https://analytics.flisk.si/'), fakeEnv())).text();
+  const matches = [...html.matchAll(/<meta name="description" content="([^"]*)">/g)];
+  expect(matches.length).toBe(1);
+  expect(matches[0][1].length).toBeGreaterThanOrEqual(50);
+  expect(matches[0][1].length).toBeLessThanOrEqual(160);
+  expect(matches[0][1]).toContain('Cookieless analytics');
+});
+
 test('only logins on the list get in, even with a valid GitHub sign-in', async () => {
   const env = fakeEnv();
   expect(allowed(env, 'ODYKYI')).toBe(true);
