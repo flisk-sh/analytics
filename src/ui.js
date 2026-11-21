@@ -4,31 +4,44 @@ import { CSS } from './css.js';
 export const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 const FONTS = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,800&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">';
+// Only the public landing page carries social metadata; the signed-in cabinet pages stay private.
+const SITE_URL = 'https://analytics.flisk.si/';
+const SEO_META = {
+  canonical: SITE_URL,
+  og: { title: 'Flisk Analytics', description: 'Cookieless web analytics for the Flisk sites.', url: SITE_URL, image: 'https://flisk.si/og.png' },
+  twitter: { card: 'summary_large_image' },
+};
+const SEO = [
+  `<link rel="canonical" href="${SEO_META.canonical}">`,
+  ...Object.entries(SEO_META.og).map(([k, v]) => `<meta property="og:${k}" content="${v}">`),
+  `<meta name="twitter:card" content="${SEO_META.twitter.card}">`,
+].join('');
+
 const GH = '<svg class="i" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>';
 
 // The signed-out pages are public: give them a description so search results and link previews have a summary.
 export const DESCRIPTION = 'Cookieless analytics for the Flisk sites: a small script counts pageviews without cookies or a consent banner, with private numbers.';
 
-export function layout(title, body, script = '', description = '') {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f7f5e4"><meta name="theme-color" content="#f7f5e4" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#161614" media="(prefers-color-scheme: dark)"><script defer data-domain="analytics.flisk.si" src="https://flisk.sh/a.js"></script><meta name="robots" content="noindex"><title>${esc(title)}</title>${description ? `<meta name="description" content="${esc(description)}">` : ''}${FONTS}<style>${CSS}</style><script src="https://flisk.si/assets/bar.js" defer></script></head><body>${body}${script ? `<script>${script}</script>` : ''}</body></html>`;
+export function layout(title, body, script = '', meta = '') {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f7f5e4"><meta name="theme-color" content="#f7f5e4" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#161614" media="(prefers-color-scheme: dark)"><script defer data-domain="analytics.flisk.si" src="https://flisk.sh/a.js"></script><meta name="robots" content="noindex"><title>${esc(title)}</title>${meta}${FONTS}<style>${CSS}</style><script src="https://flisk.si/assets/bar.js" defer></script></head><body><a class="skip-link" href="#main">Skip to content</a>${body}${script ? `<script>${script}</script>` : ''}</body></html>`;
 }
 
 const LOGO = '<a class="logo" href="/"><span class="mk">&gt;_</span><span>flisk</span><small>Growth</small></a>';
 
 function shell(login, active, inner) {
   const nav = [['Sites', '/'], ['API keys', '/tokens']].map(([n, h]) => `<a href="${h}" class="${n === active ? 'on' : ''}">${n}</a>`).join('');
-  return `<div class="frame"><header class="top">${LOGO}<nav>${nav}</nav><form class="me" method="post" action="/logout" style="margin:0"><span class="m">${esc(login)}</span><button class="av" title="Sign out" style="border:0;cursor:pointer">${esc(login[0].toUpperCase())}</button></form></header><main>${inner}</main></div>`;
+  return `<div class="frame"><header class="top">${LOGO}<nav>${nav}</nav><form class="me" method="post" action="/logout" style="margin:0"><span class="m">${esc(login)}</span><button class="av" title="Sign out" style="border:0;cursor:pointer">${esc(login[0].toUpperCase())}</button></form></header><main id="main">${inner}</main></div>`;
 }
 
 export function loginPage(error = '') {
   const side = '<aside class="lside"><div class="big">0</div><div class="m">Cookies set on your visitors</div><div><div class="li"><b>01</b><span>No cookies, no consent banner</span></div><div class="li"><b>02</b><span>One script tag, under 1 KB</span></div><div class="li"><b>03</b><span>Same GitHub login as chat, fleet, inference</span></div></div></aside>';
   const note = error ? `<p style="color:var(--dn)">${esc(error)}</p>` : '<p>Sign in with GitHub to see your visitors. One login works across all Flisk sites, and we only read your GitHub name.</p>';
-  return layout('Sign in · Flisk Analytics', `<div class="frame"><main class="login"><div class="lc">${LOGO}<h1>Know who comes to your site.</h1>${note}<a class="gbtn" href="/auth/login">${GH}Continue with GitHub</a><small>Visitors are counted without cookies.</small></div>${side}</main></div>`, '', DESCRIPTION);
+  return layout('Sign in · Flisk Analytics', `<div class="frame"><main id="main" class="login"><div class="lc">${LOGO}<h1>Know who comes to your site.</h1>${note}<a class="gbtn" href="/auth/login">${GH}Continue with GitHub</a><small>Visitors are counted without cookies.</small></div>${side}</main></div>`, '', `<meta name="description" content="${esc(DESCRIPTION)}">${SEO}`);
 }
 
 export function messagePage(title, text, login = '') {
   const inner = `<div class="err"><h1>${esc(title)}</h1><p>${esc(text)}</p><p><a class="btn" href="/">Back</a></p></div>`;
-  return layout(title, login ? shell(login, '', inner) : `<div class="frame">${inner}</div>`);
+  return layout(title, login ? shell(login, '', inner) : `<div class="frame"><main id="main">${inner}</main></div>`);
 }
 
 const SITES_JS = `
