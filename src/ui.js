@@ -10,7 +10,7 @@ const GH = '<svg class="i" width="20" height="20" viewBox="0 0 24 24" aria-hidde
 export const DESCRIPTION = 'Cookieless analytics for the Flisk sites: a small script counts pageviews without cookies or a consent banner, with private numbers.';
 
 export function layout(title, body, script = '', description = '') {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script defer data-domain="analytics.flisk.si" src="https://flisk.sh/a.js"></script><meta name="robots" content="noindex"><title>${esc(title)}</title>${description ? `<meta name="description" content="${esc(description)}">` : ''}${FONTS}<style>${CSS}</style><script src="https://flisk.si/assets/bar.js" defer></script></head><body>${body}${script ? `<script>${script}</script>` : ''}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f7f5e4"><meta name="theme-color" content="#f7f5e4" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#161614" media="(prefers-color-scheme: dark)"><script defer data-domain="analytics.flisk.si" src="https://flisk.sh/a.js"></script><meta name="robots" content="noindex"><title>${esc(title)}</title>${description ? `<meta name="description" content="${esc(description)}">` : ''}${FONTS}<style>${CSS}</style><script src="https://flisk.si/assets/bar.js" defer></script></head><body>${body}${script ? `<script>${script}</script>` : ''}</body></html>`;
 }
 
 const LOGO = '<a class="logo" href="/"><span class="mk">&gt;_</span><span>flisk</span><small>Growth</small></a>';

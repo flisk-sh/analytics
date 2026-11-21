@@ -7,6 +7,7 @@ import { addSite, cleanDomain, listDomains, ownerOf } from './sites.js';
 import { bearerLogin, createToken, listTokens, revokeToken } from './tokens.js';
 import { mcpResponse } from './mcp.js';
 import { publicFile } from './public-files.js';
+import { notFoundPage } from './not-found.js';
 import { withSecurityHeaders } from './security-headers.js';
 
 export { cleanDomain };
@@ -83,7 +84,7 @@ async function route(request, env) {
   if (!bearer && (!session || !allowed(env, session.login))) {
     if (isApi) return json(401, { error: 'sign in' });
     // Only real pages show the sign-in; any other address is a plain 404.
-    return PAGES.test(path) ? html(loginPage()) : html(messagePage('Not found', 'There is nothing at this address.'), 404);
+    return PAGES.test(path) ? html(loginPage()) : html(notFoundPage(), 404);
   }
   const login = bearer || session.login;
 
@@ -142,7 +143,7 @@ async function route(request, env) {
       return json(502, { error: 'logs unavailable' });
     }
   }
-  return html(messagePage('Not found', 'There is nothing at this address.', login), 404);
+  return html(notFoundPage(), 404);
 }
 
 export default { fetch: (request, env) => handle(request, env) };

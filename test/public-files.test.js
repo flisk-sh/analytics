@@ -36,7 +36,19 @@ test('robots.txt references the sitemap and keeps the cabinet disallowed', async
   expect(await res.text()).toBe('User-agent: *\nDisallow: /\nSitemap: https://analytics.flisk.si/sitemap.xml\n');
 });
 
-test.each(['/favicon.ico', '/sitemap.xml', '/llms.txt', '/robots.txt'])('HEAD %s keeps GET headers with no body', async (path) => {
+test('/.well-known/security.txt publishes a contact and a future expiry', async () => {
+  const res = await get('/.well-known/security.txt');
+  expect(res.status).toBe(200);
+  expect(res.headers.get('content-type')).toBe('text/plain; charset=utf-8');
+  expect(res.headers.get('cache-control')).toBe('public, max-age=3600');
+  const text = await res.text();
+  expect(text).toContain('Contact: mailto:security@flisk.si');
+  expect(text).toMatch(/^Expires: \d{4}-\d{2}-\d{2}T/m);
+  expect(new Date(/^Expires: (.*)$/m.exec(text)[1]).getTime()).toBeGreaterThan(Date.now());
+  expect(text).toContain('Canonical: https://analytics.flisk.si/.well-known/security.txt');
+});
+
+test.each(['/favicon.ico', '/sitemap.xml', '/llms.txt', '/robots.txt', '/.well-known/security.txt'])('HEAD %s keeps GET headers with no body', async (path) => {
   const getRes = await get(path);
   const head = await get(path, { method: 'HEAD' });
   expect(head.status).toBe(200);
@@ -46,7 +58,7 @@ test.each(['/favicon.ico', '/sitemap.xml', '/llms.txt', '/robots.txt'])('HEAD %s
   expect(await head.text()).toBe('');
 });
 
-test.each(['/favicon.ico', '/sitemap.xml', '/llms.txt', '/robots.txt'])('POST %s is refused', async (path) => {
+test.each(['/favicon.ico', '/sitemap.xml', '/llms.txt', '/robots.txt', '/.well-known/security.txt'])('POST %s is refused', async (path) => {
   const res = await get(path, { method: 'POST' });
   expect(res.status).toBe(405);
   expect(res.headers.get('allow')).toBe('GET, HEAD');
