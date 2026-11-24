@@ -45,6 +45,11 @@ test('dashboard has a click heatmap that reads /api/clicks', () => {
   const make = new Function('SITE', `function fmt(n){return String(n)}function esc(s){return String(s)}var data={},hm={days:7};var SITE='flisk.sh';var location={host:'analytics.flisk.si'};${js.slice(js.indexOf('function heatHtml'), js.indexOf('function drawHeat'))};return heatHtml`);
   const out = make('flisk.sh')({ page: '/', clicks: 3, dead: 1, since: '2026-11-16', cells: [{ x: 10, y: 0, n: 2 }, { x: 50, y: 100, n: 1 }], targets: [{ target: 'Sign up', kind: 'ctl', n: 2 }] }, 'mobile');
   expect(out).toContain('class="hc"');
+  // Smooth density render: one canvas overlay, and the per-cell boxes carry only the tooltip (no flat fill).
+  expect(out).toContain('<canvas class="hcv"');
+  expect(out).not.toMatch(/class="hc"[^>]*opacity/);
+  expect(js).toContain('createRadialGradient');
+  expect(js).toContain("window.addEventListener('resize',fitHeat)");
   expect(out).toContain('Sign up');
   expect(out).toContain('role="img"');
   expect(out).toContain('<iframe');
