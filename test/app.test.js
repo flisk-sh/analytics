@@ -216,3 +216,10 @@ test('signed-in pages expose only the login in data-flisk-login for the org bar,
   const out = await handle(new Request('https://analytics.flisk.si/'), env);
   expect(await out.text()).not.toContain('data-flisk-login');
 });
+
+test('a site can post the beacon to its own /_f/e address', async () => {
+  const env = fakeEnv();
+  const res = await handle(new Request('https://flisk.sh/_f/e', { method: 'POST', headers: { origin: 'https://flisk.sh', 'user-agent': 'Mozilla/5.0 Chrome/140.0' }, body: JSON.stringify({ p: '/', d: 'flisk.sh' }) }), env);
+  expect(res.status).toBe(204);
+  expect(env.points.length).toBe(1);
+});
