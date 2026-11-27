@@ -3,7 +3,11 @@ main = "src/index.js"
 compatibility_date = "2026-10-01"
 
 # analytics.flisk.si on the flisk.si zone.
-routes = [{ pattern = "analytics.flisk.si", custom_domain = true }]
+# flisk.sh/_f/e takes flisk.sh's own beacons, so the page posts to its own address.
+routes = [
+  { pattern = "analytics.flisk.si", custom_domain = true },
+  { pattern = "flisk.sh/_f/e", zone_name = "flisk.sh" },
+]
 
 # One data point per pageview. Free plan: 100,000 data points written and 10,000 SQL reads a day.
 [[analytics_engine_datasets]]

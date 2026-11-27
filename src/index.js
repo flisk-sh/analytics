@@ -49,7 +49,8 @@ async function route(request, env) {
   }
 
   // The beacon first: it is the hot path and needs no session.
-  if (path === '/e') {
+  // /_f/e is the same beacon on a site's own address (see the routes in wrangler.toml).
+  if (path === '/e' || path === '/_f/e') {
     if (method === 'POST' || method === 'OPTIONS') return handleBeacon(request, env);
     return new Response(null, { status: 405, headers: CORS });
   }
