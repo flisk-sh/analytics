@@ -43,11 +43,12 @@ const base = (site, w, kind = '') => `FROM ${DATASET} WHERE index1 = '${site}' A
 const num = (v) => Number(v) || 0;
 
 const stepMs = { HOUR: 3600e3, DAY: 86400e3, WEEK: 7 * 86400e3 };
-const bucketKey = (ms, step) => {
-  const d = new Date(ms);
-  if (step === 'HOUR') d.setUTCMinutes(0, 0, 0); else d.setUTCHours(0, 0, 0, 0);
-  return d.toISOString().slice(0, 19).replace('T', ' ');
+const bucketStart = (ms, step) => {
+  // toStartOfInterval starts weeks on Monday, unlike the Unix epoch (Thursday).
+  const origin = step === 'WEEK' ? Date.UTC(1970, 0, 5) : 0;
+  return origin + Math.floor((ms - origin) / stepMs[step]) * stepMs[step];
 };
+const bucketKey = (ms, step) => sqlTime(bucketStart(ms, step));
 
 const STEPS = { hour: 'HOUR', day: 'DAY', week: 'WEEK' };
 const MAX_BUCKETS = 800;
@@ -70,8 +71,10 @@ export function resolveWindow({ range = '30d', from, to, by } = {}, now = Date.n
   let step = STEPS[String(by || '').toLowerCase()] || w.step;
   while (span / stepMs[step] > MAX_BUCKETS && step !== 'WEEK') step = step === 'HOUR' ? 'DAY' : 'WEEK';
   w.step = step;
-  w.count = Math.max(1, Math.round(span / stepMs[step]));
   w.end = w.from != null ? w.to - 1 : now;
+  w.count = step === 'WEEK'
+    ? 1 + (bucketStart(w.end, step) - bucketStart(w.from ?? now - span, step)) / stepMs.WEEK
+    : Math.max(1, Math.round(span / stepMs[step]));
   w.key += `/${step}`;
   return w;
 }
@@ -81,15 +84,14 @@ export function fillBuckets(rows, step, count, now = Date.now()) {
   const have = new Map(rows.map((r) => [String(r.t).slice(0, 19), { v: num(r.v), pv: num(r.pv ?? r.v), vs: num(r.vs ?? r.v) }]));
   const out = [];
   for (let i = count - 1; i >= 0; i--) {
-    const t = now - i * stepMs[step];
-    const key = step === 'WEEK' ? [...have.keys()].sort().reverse().find((k) => Date.parse(`${k.replace(' ', 'T')}Z`) <= t && t - Date.parse(`${k.replace(' ', 'T')}Z`) < stepMs.WEEK) : bucketKey(t, step);
-    out.push({ t: key || bucketKey(t, 'DAY'), ...(have.get(key) || { v: 0, pv: 0, vs: 0 }) });
+    const key = bucketKey(now - i * stepMs[step], step);
+    out.push({ t: key, ...(have.get(key) || { v: 0, pv: 0, vs: 0 }) });
   }
   return out;
 }
 export function fillSeries(rows, range, now = Date.now()) {
-  const { n, step } = RANGES[range];
-  return fillBuckets(rows, step, Math.round((n * 86400e3) / stepMs[step]), now);
+  const { step, count, end } = resolveWindow({ range }, now);
+  return fillBuckets(rows, step, count, end);
 }
 
 async function overview(env, site, w, sql) {

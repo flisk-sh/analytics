@@ -99,6 +99,31 @@ test('fillBuckets carries visitors, visits and pageviews per bucket', () => {
   expect(s[0]).toMatchObject({ v: 0, pv: 0, vs: 0 });
 });
 
+test('weekly buckets keep Monday labels even in weeks without traffic', () => {
+  const friday = Date.UTC(2027, 0, 8, 12);
+  const rows = [{ t: '2026-12-21 00:00:00', v: 2 }, { t: '2027-01-04 00:00:00', v: 5 }];
+  expect(fillBuckets(rows, 'WEEK', 3, friday).map(({ t, v }) => [t, v])).toEqual([
+    ['2026-12-21 00:00:00', 2],
+    ['2026-12-28 00:00:00', 0],
+    ['2027-01-04 00:00:00', 5],
+  ]);
+});
+
+test('a weekly window includes both partial weeks but excludes a Monday end boundary', () => {
+  const from = Date.UTC(2027, 0, 3, 23);
+  const monday = Date.UTC(2027, 0, 4);
+  const to = monday + 3600e3;
+  expect(resolveWindow({ from, to, by: 'week' }, to).count).toBe(2);
+  expect(resolveWindow({ from, to: monday, by: 'week' }, to).count).toBe(1);
+});
+
+test('the yearly series covers the oldest partial week', () => {
+  const friday = Date.UTC(2027, 0, 8, 12);
+  const series = fillSeries([{ t: '2026-01-05 00:00:00', v: 3 }], '12m', friday);
+  expect(series).toHaveLength(53);
+  expect(series[0]).toMatchObject({ t: '2026-01-05 00:00:00', v: 3 });
+});
+
 test('siteLogs: newest events, kind filter, limit clamp, cache, bad domain', async () => {
   const seen = [];
   const sql = async (q) => { seen.push(q); return [{ t: '2026-11-17 10:00:00', kind: 'click', path: '/', target: 'x.com/a', source: 'GitHub', country: 'DE', city: 'Berlin', browser: 'Chrome', os: 'macOS', device: 'Desktop', visitor: 'abcdef0123456789' }]; };
